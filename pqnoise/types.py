@@ -1,0 +1,1 @@
+BytesLike = bytes | bytearray | memoryview
