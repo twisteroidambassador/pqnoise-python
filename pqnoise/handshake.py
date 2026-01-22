@@ -410,6 +410,13 @@ class HandshakeState:
         """
         return self._next_message_to_process >= len(self._message_patterns)
     
+    @property
+    def handshake_hash(self) -> bytes:
+        """
+        The current handshake hash.
+        """
+        return self._symmetric_state.handshake_hash
+    
     def split(self) -> tuple[CipherState, CipherState]:
         """
         Create a pair of CipherState objects that can be used to encrypt transport messages.
