@@ -42,9 +42,12 @@ class BaseKEMPrivateKey(ABC):
     @classmethod and @property has been deprecated in Python 3.11, and writing a custom metaclass
     seems not worth the complexity.)
 
-    This class only specifies operations used in PQNoise protocol handshakes,
-    and additional methods may be required for other general usage,
-    such as encoding private key to bytes, decoding private key from bytes, loading from file, etc.
+    This class defines operations used in PQNoise protocol handshakes as abstract methods.
+    Some other methods,
+    not necessary for the handshake,
+    but potentially useful,
+    are defined as regular unimplemented methods,
+    in the hope that subclasses will implement them.
     """
 
     """The length of a KEM private key in bytes."""
@@ -80,6 +83,32 @@ class BaseKEMPrivateKey(ABC):
         :param ciphertext: the ciphertext.
         :raises CryptographicValueError: if decapsulation fails.
         :return: the shared secret.
+        """
+        raise NotImplementedError
+    
+    def to_bytes(self) -> BytesLike:
+        """
+        Return the (expanded) private key encoded in bytes.
+        
+        :return: the private key
+        """
+        raise NotImplementedError
+    
+    @classmethod
+    def from_bytes(cls, private_key_bytes: BytesLike) -> Self:
+        """
+        Create a private key object from the (expanded) bytes representation.
+        
+        :param private_key_bytes: the expanded private key in bytes.
+        """
+        raise NotImplementedError
+    
+    @classmethod
+    def from_seed(cls, seed: BytesLike) -> Self:
+        """
+        Create a private key object from the seed.
+        
+        :param seed: the seed.
         """
         raise NotImplementedError
 
