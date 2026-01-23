@@ -13,10 +13,14 @@ This library requires a modern Python 3 version
 (developed with 3.11, may work with lower versions but no guarantees).
 A flexible Provider architecture enables using different 3rd-party libraries for the actual cryptographic operations:
 currently this library includes providers using
-[alkindi](https://github.com/alraddady/alkindi)
-for post-quantum KEM operations and
-[pyca/cryptography](https://github.com/pyca/cryptography/)
-for conventional crypto operations,
+[alkindi](https://github.com/alraddady/alkindi),
+[liboqs-python](https://github.com/open-quantum-safe/liboqs-python)
+for post-quantum KEM operations,
+and
+[pyca/cryptography](https://github.com/pyca/cryptography/),
+[pynacl](https://github.com/pyca/pynacl),
+and the Python standard library
+for conventional crypto operations (AEAD encryption, hashing, HKDF),
 with more on the way.
 It's also very easy to implement your own providers.
 
