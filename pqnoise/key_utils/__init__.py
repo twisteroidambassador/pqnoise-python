@@ -32,7 +32,7 @@ ML_KEM_PRIVATE_KEY_OFFSETS = {
 }
 
 
-def ml_kem_public_key_bytes_from_private_key_bytes(private_key_bytes: BytesLike, skip_verify: bool = False) -> bytes:
+def ml_kem_public_key_bytes_from_private_key_bytes(private_key_bytes: BytesLike, skip_verify: bool = False) -> memoryview:
     """
     Extract the public (encapsulation) key from an expanded private (decapsulation) ML-KEM-{512,768,1024} key.
     
@@ -40,7 +40,7 @@ def ml_kem_public_key_bytes_from_private_key_bytes(private_key_bytes: BytesLike,
     :param skip_verify: if True, skip verifying the embedded public key hash.
     :raises CryptographicValueError: if the private key does not have a valid length,
     or embedded public key does not match its hash.
-    :return: pulic key bytes
+    :return: pulic key bytes, in a memoryview object
     """
     try:
         offsets = ML_KEM_PRIVATE_KEY_OFFSETS[len(private_key_bytes)]
@@ -53,4 +53,4 @@ def ml_kem_public_key_bytes_from_private_key_bytes(private_key_bytes: BytesLike,
         public_key_hash_verify = hashlib.sha3_256(public_key_bytes).digest()
         if not hmac.compare_digest(public_key_hash, public_key_hash_verify):
             raise CryptographicValueError('Public key hash verification failed')
-    return bytes(public_key_bytes)
+    return public_key_bytes

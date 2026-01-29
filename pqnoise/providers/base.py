@@ -33,6 +33,9 @@ class BaseKEMPrivateKey(ABC):
     """
     Represents a KEM private key.
 
+    Users should avoid instantiating this class directly,
+    and instead use class methods.
+
     Implementations should inherit from this class and override all methods and class variables.
     
     Again, do remember to override the class variables!
@@ -103,6 +106,14 @@ class BaseKEMPrivateKey(ABC):
         """
         raise NotImplementedError
     
+    def to_seed(self) -> BytesLike | None:
+        """
+        Return the seed, if available.
+        
+        :return: The seed if available, or None if not available.
+        """
+        raise NotImplementedError
+    
     @classmethod
     def from_seed(cls, seed: BytesLike) -> Self:
         """
@@ -116,6 +127,9 @@ class BaseKEMPrivateKey(ABC):
 class BaseKEMPublicKey(ABC):
     """
     Represents a KEM public key.
+
+    Users should avoid instantiating this class directly,
+    and instead use class methods.
 
     Implementations should inherit from this class and override all methods and class variables.
 

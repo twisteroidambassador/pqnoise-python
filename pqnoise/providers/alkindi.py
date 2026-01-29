@@ -12,6 +12,7 @@ from typing import ClassVar, Self
 import alkindi
 
 from ..exceptions import CryptographicValueError
+from ..key_utils import ml_kem_public_key_bytes_from_private_key_bytes
 from ..types import BytesLike
 from .base import BaseKEMPrivateKey, BaseKEMPublicKey
 
@@ -22,14 +23,10 @@ class _BaseAlkindiMLKEMPrivateKey(BaseKEMPrivateKey):
 
     Alkindi does not expose algorithm parameters such as key lengths,
     so these class variables are hardcoded in subclasses.
-
-    Alkindi also does not expose a method to extract the public key bytes from private key bytes,
-    even though the public key is simply concatenated into the private key,
-    so this class stores both private and public key bytes.
     """
     _algorithm: ClassVar[str]
 
-    def __init__(self, private_key_bytes: bytes, public_key_bytes: bytes) -> None:
+    def __init__(self, private_key_bytes: bytes, public_key_bytes: bytes | None) -> None:
         super().__init__()
         self._private_key_bytes = private_key_bytes
         self._public_key_bytes = public_key_bytes
@@ -40,6 +37,8 @@ class _BaseAlkindiMLKEMPrivateKey(BaseKEMPrivateKey):
         return cls(keypair.private_key, keypair.public_key)
     
     def get_public_key_bytes(self) -> BytesLike:
+        if self._public_key_bytes is None:
+            self._public_key_bytes = bytes(ml_kem_public_key_bytes_from_private_key_bytes(self._private_key_bytes))
         return self._public_key_bytes
     
     def decapsulate(self, ciphertext: BytesLike) -> BytesLike:
@@ -47,6 +46,15 @@ class _BaseAlkindiMLKEMPrivateKey(BaseKEMPrivateKey):
             return alkindi.KEM.decapsulate(self._algorithm, self._private_key_bytes, bytes(ciphertext))
         except alkindi.OpenSSLError:
             raise CryptographicValueError('Decapsulation failed')
+    
+    def to_bytes(self) -> BytesLike:
+        return self._private_key_bytes
+    
+    @classmethod
+    def from_bytes(cls, private_key_bytes: BytesLike) -> Self:
+        if len(private_key_bytes) != cls.private_key_length:
+            raise ValueError('Incorrect expanded private key length')
+        return cls(bytes(private_key_bytes), None)
 
 
 class _BaseAlkindiMLKEMPublicKey(BaseKEMPublicKey):
@@ -63,6 +71,8 @@ class _BaseAlkindiMLKEMPublicKey(BaseKEMPublicKey):
     
     @classmethod
     def from_bytes(cls, public_key_bytes: BytesLike) -> Self:
+        if len(public_key_bytes) != cls.public_key_length:
+            raise ValueError('Incorrect public key bytes length')
         return cls(bytes(public_key_bytes))
     
     def to_bytes(self) -> BytesLike:

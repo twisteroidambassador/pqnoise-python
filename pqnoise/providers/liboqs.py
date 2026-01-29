@@ -11,6 +11,7 @@ from typing import ClassVar, Self
 import oqs
 
 from ..exceptions import CryptographicValueError
+from ..key_utils import ml_kem_public_key_bytes_from_private_key_bytes
 from ..types import BytesLike
 from .base import BaseKEMPrivateKey, BaseKEMPublicKey
 
@@ -47,7 +48,18 @@ class _BaseOQSKEMPrivateKey(BaseKEMPrivateKey):
             return self._kem.decap_secret(bytes(ciphertext))
         except RuntimeError:
             raise CryptographicValueError('Decapsulation failed')
-        
+    
+    def to_bytes(self) -> BytesLike:
+        return self._kem.export_secret_key()
+    
+    @classmethod
+    def from_bytes(cls, private_key_bytes: BytesLike) -> Self:
+        if len(private_key_bytes) != cls.private_key_length:
+            raise ValueError('Incorrect private key bytes length')
+        kem = oqs.KeyEncapsulation(cls._algorithm, private_key_bytes)
+        public_key_bytes = bytes(ml_kem_public_key_bytes_from_private_key_bytes(private_key_bytes))
+        return cls(kem, public_key_bytes)
+    
     @classmethod
     def from_seed(cls, seed: BytesLike) -> Self:
         kem = oqs.KeyEncapsulation(cls._algorithm)
@@ -71,7 +83,9 @@ class _BaseOQSKEMPublicKey(BaseKEMPublicKey):
     
     @classmethod
     def from_bytes(cls, public_key_bytes: BytesLike) -> Self:
-        return cls(public_key_bytes)
+        if len(public_key_bytes) != cls.public_key_length:
+            raise ValueError('Incorrect public key bytes length')
+        return cls(bytes(public_key_bytes))
     
     def to_bytes(self) -> BytesLike:
         return self._public_key_bytes
